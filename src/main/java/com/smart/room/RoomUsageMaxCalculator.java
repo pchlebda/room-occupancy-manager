@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 @Component
 class RoomUsageMaxCalculator implements RoomUsageCalculable {
@@ -67,17 +68,17 @@ class RoomUsageMaxCalculator implements RoomUsageCalculable {
     }
 
     private int calculateWillingToPayForPremium(final List<Guest> willingToPayPrices) {
-        return (int) willingToPayPrices.stream()
-                .map(Guest::getOfferPrice)
-                .filter(price -> price.compareTo(PREMIUM_LVL) >= 0)
-                .count();
+        return calculateWillingToPay(willingToPayPrices, price -> price.compareTo(PREMIUM_LVL) >= 0);
     }
 
     private int calculateWillingToPayForEconomy(final List<Guest> willingToPayPrices) {
-        return (int) willingToPayPrices.stream()
-                .map(Guest::getOfferPrice)
-                .filter(price -> price.compareTo(PREMIUM_LVL) < 0)
-                .count();
+        return calculateWillingToPay(willingToPayPrices, price -> price.compareTo(PREMIUM_LVL) < 0);
     }
 
+    private int calculateWillingToPay(final List<Guest> willingToPayGuest, Predicate<BigDecimal> predicate) {
+        return (int) willingToPayGuest.stream()
+                .map(Guest::getOfferPrice)
+                .filter(predicate)
+                .count();
+    }
 }
