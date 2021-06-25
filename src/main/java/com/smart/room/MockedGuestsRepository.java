@@ -9,11 +9,21 @@ import java.util.stream.DoubleStream;
 
 @Repository
 class MockedGuestsRepository implements GuestRepository {
+
+    private volatile List<Guest> guest = null;
+
     @Override
     public List<Guest> findAllGuests() {
-        return DoubleStream.of(23, 45, 155, 374, 22, 99.99d, 100, 101, 115, 209)
-                .mapToObj(BigDecimal::valueOf)
-                .map(Guest::new)
-                .collect(Collectors.toList());
+        if (guest == null) {
+            synchronized (this) {
+                if (guest == null) {
+                    this.guest = DoubleStream.of(23, 45, 155, 374, 22, 99.99d, 100, 101, 115, 209)
+                            .mapToObj(BigDecimal::valueOf)
+                            .map(Guest::new)
+                            .collect(Collectors.toList());
+                }
+            }
+        }
+        return guest;
     }
 }
